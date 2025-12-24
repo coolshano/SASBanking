@@ -87,18 +87,27 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'sasbanking.wsgi.application'
 
+#Secret for email
+def email_get_secret():
+    try:
+        client = boto3.client("secretsmanager", region_name="eu-west-2")
+        response = client.get_secret_value(
+            SecretId="arn:aws:secretsmanager:eu-west-2:320368024742:secret:email_credentials-wHogpZ"
+        )
+        return json.loads(response["SecretString"])
+    except Exception as e:
+        raise ImproperlyConfigured(f"Secrets Manager error: {e}")
+
+email_secret = email_get_secret()
 
 # Email backend
-EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-
-EMAIL_HOST = "smtp.gmail.com"
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-
-EMAIL_HOST_USER = "silveraldrin@gmail.com"
-EMAIL_HOST_PASSWORD = "ngiy spss yotr oorp"
-
-DEFAULT_FROM_EMAIL = "SASBanking <silveraldrin@gmail.com>"
+EMAIL_BACKEND = email_secret["EMAIL_BACKEND"]
+EMAIL_HOST = email_secret["EMAIL_HOST"]
+EMAIL_PORT = email_secret["EMAIL_PORT"]
+EMAIL_USE_TLS = email_secret["EMAIL_USE_TLS"]
+EMAIL_HOST_USER = email_secret["EMAIL_HOST_USER"]
+EMAIL_HOST_PASSWORD = email_secret["EMAIL_HOST_PASSWORD"]
+DEFAULT_FROM_EMAIL = email_secret["DEFAULT_FROM_EMAIL"]
 
 
 # Database
@@ -175,4 +184,3 @@ STATICFILES_DIRS = [
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'

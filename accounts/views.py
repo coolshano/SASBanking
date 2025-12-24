@@ -14,7 +14,7 @@ from django.middleware.csrf import get_token
 
 
 
-@login_required
+@login_required #User Dashboard login
 def dashboard(request):
     return render(request, 'accounts/index.html')
 
