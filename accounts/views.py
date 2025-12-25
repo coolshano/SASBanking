@@ -18,6 +18,7 @@ from django.middleware.csrf import get_token
 def dashboard(request):
     return render(request, 'accounts/index.html')
 
+#User Registration
 def register(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
@@ -30,12 +31,11 @@ def register(request):
 
     return render(request, 'register.html', {'form': form})
 
-
+#OTP view 
 def otp_view(request):
     otp = request.session.get("otp")
     user_id = request.session.get("otp_user_id")
 
-    # 🚨 No OTP in session → go back to login
     if not otp or not user_id:
         return redirect("login")
 
@@ -46,9 +46,12 @@ def otp_view(request):
             user = User.objects.get(id=user_id)
             login(request, user)
 
-            # ✅ SAFE cleanup (NO KeyError)
+
             request.session.pop("otp", None)
             request.session.pop("otp_user_id", None)
+
+            if user.email == "managersasbanking@gmail.com":
+                return redirect("users_dashboard")
 
             return redirect("dashboard")
 
@@ -57,6 +60,7 @@ def otp_view(request):
     return render(request, 'accounts/otp.html')
 
 
+#Login into the system
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -86,3 +90,11 @@ def login_view(request):
         return redirect("otp")
 
     return render(request, 'accounts/login.html')
+
+#Manager Dashboard
+@login_required
+def users_dashboard(request):
+    users = User.objects.all().order_by('-date_joined')
+    return render(request, 'accounts/users_dashboard.html', {
+        'users': users
+    })
