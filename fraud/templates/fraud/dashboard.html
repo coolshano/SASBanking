@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SASBanking | Fraud Analytics Dashboard</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Roboto, Arial, sans-serif;
+            background: #f4f6f9;
+            color: #333;
+        }
+
+        /* ================= HEADER ================= */
+        .header {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: white;
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 26px;
+            letter-spacing: 1px;
+        }
+
+        .header span {
+            font-size: 14px;
+            opacity: 0.85;
+        }
+
+        /* ================= LAYOUT ================= */
+        .container {
+            padding: 30px 40px;
+        }
+
+        /* ================= CARDS ================= */
+        .cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            text-align: center;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.12);
+        }
+
+        .card h3 {
+            margin: 0;
+            font-size: 15px;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .card h1 {
+            margin: 12px 0 0;
+            font-size: 36px;
+            color: #203a43;
+        }
+
+        /* ================= SECTIONS ================= */
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 14px;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+            margin-bottom: 40px;
+        }
+
+        .section h3 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 18px;
+            color: #203a43;
+        }
+
+        /* ================= LIST ================= */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        ul li {
+            padding: 12px 15px;
+            border-bottom: 1px solid #eee;
+            font-size: 15px;
+        }
+
+        ul li:last-child {
+            border-bottom: none;
+        }
+
+        /* ================= FOOTER ================= */
+        .footer {
+            text-align: center;
+            padding: 15px;
+            font-size: 13px;
+            color: #777;
+        }
+    </style>
+</head>
+
+<body>
+
+<!-- ================= HEADER ================= -->
+<div class="header">
+    <h1>SASBanking</h1>
+    <span>Fraud Analytics & Security Monitoring</span>
+</div>
+
+<!-- ================= CONTENT ================= -->
+<div class="container">
+
+    <!-- CARDS -->
+    <div class="cards">
+        <div class="card">
+            <h3>Total Fraud Events</h3>
+            <h1>{{ total_events }}</h1>
+        </div>
+        <div class="card">
+            <h3>Failed Logins</h3>
+            <h1>{{ failed_logins }}</h1>
+        </div>
+        <div class="card">
+            <h3>OTP Failures</h3>
+            <h1>{{ otp_failures }}</h1>
+        </div>
+        <div class="card">
+            <h3>Suspicious Logins</h3>
+            <h1>{{ suspicious_logins }}</h1>
+        </div>
+    </div>
+
+    <!-- EVENTS BY TYPE -->
+    <div class="section">
+        <h3>Fraud Events by Type</h3>
+        <canvas id="eventTypeChart"></canvas>
+    </div>
+
+    <!-- EVENTS OVER TIME -->
+    <div class="section">
+        <h3>Fraud Events (Last 7 Days)</h3>
+        <canvas id="eventTimeChart"></canvas>
+    </div>
+
+    <!-- TOP IPS -->
+    <div class="section">
+    <h3>Top Risky IP Addresses</h3>
+    <ul>
+        {% for ip in top_ips %}
+            <li>
+                <strong>{{ ip.ip_address }}</strong>
+                —
+                {{ ip.metadata__location__country|default:"Unknown Country" }}
+                —
+                {{ ip.count }} events
+            </li>
+        {% empty %}
+            <li>No data available</li>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- ================= FOOTER ================= -->
+<div class="footer">
+    © 2025 SASBanking • Fraud Detection & Monitoring System
+</div>
+
+<!-- ================= CHART JS ================= -->
+<script>
+const eventsByType = JSON.parse('{{ events_by_type_json|safe }}');
+const eventsOverTime = JSON.parse('{{ events_over_time_json|safe }}');
+
+// Bar Chart
+new Chart(document.getElementById("eventTypeChart"), {
+    type: "bar",
+    data: {
+        labels: eventsByType.map(e => e.event_type),
+        datasets: [{
+            label: "Events",
+            data: eventsByType.map(e => e.count),
+        }]
+    }
+});
+
+// Line Chart
+new Chart(document.getElementById("eventTimeChart"), {
+    type: "line",
+    data: {
+        labels: eventsOverTime.map(e => e.day),
+        datasets: [{
+            label: "Events per Day",
+            data: eventsOverTime.map(e => e.count),
+            fill: false,
+            tension: 0.3
+        }]
+    }
+});
+</script>
+
+</body>
+</html>

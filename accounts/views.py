@@ -63,6 +63,58 @@ def register(request):
 #     return render(request, 'accounts/otp.html')
 
 
+# def otp_view(request):
+#     otp = request.session.get("otp")
+#     user_id = request.session.get("otp_user_id")
+#     ip = get_client_ip(request)
+
+#     if not otp or not user_id:
+#         return redirect("login")
+
+#     user = User.objects.get(id=user_id)
+
+#     if request.method == "POST":
+#         entered_otp = request.POST.get("otp")
+
+#         # ----------------------------
+#         # INVALID OTP → FRAUD LOG
+#         # ----------------------------
+#         if entered_otp != otp:
+#             FraudEvent.objects.create(
+#                 user=user,
+#                 event_type="OTP_FAILURE",
+#                 risk_score=25,
+#                 ip_address=ip
+#             )
+
+#             risk = detect_otp_fraud(user, ip)
+#             if risk >= 70:
+#                 return render(request, 'accounts/otp.html', {
+#                     "error": "Too many invalid OTP attempts. Please try again later."
+#                 })
+
+#             return render(request, 'accounts/otp.html', {
+#                 "error": "Invalid OTP"
+#             })
+
+#         # ----------------------------
+#         # VALID OTP → LOGIN
+#         # ----------------------------
+#         login(request, user)
+
+#         request.session.pop("otp", None)
+#         request.session.pop("otp_user_id", None)
+
+#         # ----------------------------
+#         # ROLE-BASED REDIRECT
+#         # ----------------------------
+#         if user.email == "managersasbanking@gmail.com":
+#             return redirect("users_dashboard")
+
+#         return redirect("dashboard")
+
+#     return render(request, 'accounts/otp.html')
+
 def otp_view(request):
     otp = request.session.get("otp")
     user_id = request.session.get("otp_user_id")
@@ -108,13 +160,15 @@ def otp_view(request):
         # ----------------------------
         # ROLE-BASED REDIRECT
         # ----------------------------
+        if user.email == "silvershannonsmith@gmail.com":
+            return redirect("fraud_dashboard")
+
         if user.email == "managersasbanking@gmail.com":
             return redirect("users_dashboard")
 
         return redirect("dashboard")
 
     return render(request, 'accounts/otp.html')
-
 
 
 #Login into the system
@@ -288,6 +342,11 @@ def login_view(request):
 
         request.session["otp"] = str(otp)
         request.session["otp_user_id"] = user.id
+
+        if user.email == "cyber@gmail.com":
+            request.session["post_login_redirect"] = "fraud_dashboard"
+        else:
+            request.session["post_login_redirect"] = "dashboard"
 
         send_mail(
             subject="Your Login OTP",

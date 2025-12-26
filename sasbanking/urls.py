@@ -24,6 +24,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('accounts/', include('accounts.urls')),
     path('', lambda request: redirect('/accounts/login/'), name='home'),
+    path("fraud/", include("fraud.urls")),
     #path('', email_password_login, name='home'),
     #path('', include('accounts.urls')),
     #path('', include('django.contrib.auth.urls')), 
