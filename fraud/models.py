@@ -18,3 +18,5 @@ class FraudEvent(models.Model):
 
     def __str__(self):
         return f"{self.event_type} | {self.user} | {self.risk_score}"
+    
+

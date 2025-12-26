@@ -12,8 +12,9 @@ from .models import LoginOTP
 from django.http import HttpResponse
 from django.middleware.csrf import get_token
 from fraud.models import FraudEvent
-from fraud.services import detect_login_fraud,  detect_otp_fraud
-from fraud.utils import get_client_ip
+from fraud.services import detect_login_fraud,  detect_otp_fraud, detect_geo_anomaly
+from fraud.utils import get_client_ip, get_geo_location
+from django.shortcuts import render, redirect
 
 
 @login_required #User Dashboard login
@@ -147,11 +148,85 @@ def otp_view(request):
 
 #     return render(request, 'accounts/login.html')
 
+# def login_view(request):
+#     if request.method == "POST":
+#         email = request.POST.get("email")
+#         password = request.POST.get("password")
+#         ip = get_client_ip(request)
+
+#         # ----------------------------
+#         # USER LOOKUP
+#         # ----------------------------
+#         try:
+#             user_obj = User.objects.get(email=email)
+#         except User.DoesNotExist:
+#             FraudEvent.objects.create(
+#                 user=None,
+#                 event_type="FAILED_LOGIN",
+#                 risk_score=20,
+#                 ip_address=ip,
+#                 metadata={"email": email}
+#             )
+#             return render(request, 'accounts/login.html', {
+#                 "error": "User not found"
+#             })
+
+#         # ----------------------------
+#         # AUTHENTICATION
+#         # ----------------------------
+#         user = authenticate(username=user_obj.username, password=password)
+#         if not user:
+#             FraudEvent.objects.create(
+#                 user=user_obj,
+#                 event_type="FAILED_LOGIN",
+#                 risk_score=30,
+#                 ip_address=ip
+#             )
+#             return render(request, 'accounts/login.html', {
+#                 "error": "Invalid credentials"
+#             })
+
+#         # ----------------------------
+#         # FRAUD CHECK BEFORE OTP
+#         # ----------------------------
+#         risk_score = detect_login_fraud(user, ip)
+
+#         if risk_score >= 70:
+#             FraudEvent.objects.create(
+#                 user=user,
+#                 event_type="SUSPICIOUS_LOGIN",
+#                 risk_score=risk_score,
+#                 ip_address=ip
+#             )
+#             return render(request, 'accounts/login.html', {
+#                 "error": "Suspicious activity detected. Please try again later."
+#             })
+
+#         # ----------------------------
+#         # OTP GENERATION
+#         # ----------------------------
+#         otp = random.randint(100000, 999999)
+
+#         request.session["otp"] = str(otp)
+#         request.session["otp_user_id"] = user.id
+
+#         send_mail(
+#             subject="Your Login OTP",
+#             message=f"Your OTP is {otp}",
+#             from_email=settings.DEFAULT_FROM_EMAIL,
+#             recipient_list=[email],
+#         )
+
+#         return redirect("otp")
+
+#     return render(request, 'accounts/login.html')
+
 def login_view(request):
     if request.method == "POST":
         email = request.POST.get("email")
         password = request.POST.get("password")
         ip = get_client_ip(request)
+        location = get_geo_location(ip)
 
         # ----------------------------
         # USER LOOKUP
@@ -164,7 +239,7 @@ def login_view(request):
                 event_type="FAILED_LOGIN",
                 risk_score=20,
                 ip_address=ip,
-                metadata={"email": email}
+                metadata={"email": email, "location": location}
             )
             return render(request, 'accounts/login.html', {
                 "error": "User not found"
@@ -179,26 +254,31 @@ def login_view(request):
                 user=user_obj,
                 event_type="FAILED_LOGIN",
                 risk_score=30,
-                ip_address=ip
+                ip_address=ip,
+                metadata={"location": location}
             )
             return render(request, 'accounts/login.html', {
                 "error": "Invalid credentials"
             })
 
         # ----------------------------
-        # FRAUD CHECK BEFORE OTP
+        # FRAUD CHECKS
         # ----------------------------
-        risk_score = detect_login_fraud(user, ip)
+        login_risk = detect_login_fraud(user, ip)
+        geo_risk = detect_geo_anomaly(user, location)
 
-        if risk_score >= 70:
+        total_risk = login_risk + geo_risk
+
+        if total_risk >= 80:
             FraudEvent.objects.create(
                 user=user,
                 event_type="SUSPICIOUS_LOGIN",
-                risk_score=risk_score,
-                ip_address=ip
+                risk_score=total_risk,
+                ip_address=ip,
+                metadata={"location": location}
             )
             return render(request, 'accounts/login.html', {
-                "error": "Suspicious activity detected. Please try again later."
+                "error": "Login blocked due to suspicious location change."
             })
 
         # ----------------------------

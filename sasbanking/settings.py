@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'accounts',
     'widget_tweaks',
     'fraud',
+    "user_agents",
 ]
 
 MIDDLEWARE = [
@@ -66,7 +67,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    "django_user_agents.middleware.UserAgentMiddleware",
 ]
+
+GEOIP_PATH = BASE_DIR / "geoip"
 
 ROOT_URLCONF = 'sasbanking.urls'
 
