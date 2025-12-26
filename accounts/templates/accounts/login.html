@@ -1,89 +1,77 @@
+{% extends "base.html" %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Login</title>
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+{% block title %}Login | SASBanking{% endblock %}
 
-        .login-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 15px rgba(0,0,0,0.1);
-            width: 350px;
-            text-align: center;
-        }
+{% block extra_css %}
+<style>
+    .login-container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+        width: 350px;
+        text-align: center;
+    }
 
-        img.logo {
-            width: 120px;
-            margin-bottom: 20px;
-        }
+    img.logo {
+        width: 120px;
+        margin-bottom: 20px;
+    }
 
-        input {
-            width: 100%;
-            padding: 10px;
-            margin-top: 10px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-        }
+    input {
+        width: 100%;
+        padding: 10px;
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+    }
 
-        button {
-            background: #007bff;
-            color: white;
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 6px;
-            margin-top: 15px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+    button {
+        background: #007bff;
+        color: white;
+        width: 100%;
+        padding: 10px;
+        border: none;
+        border-radius: 6px;
+        margin-top: 15px;
+        cursor: pointer;
+        font-weight: bold;
+    }
 
-        .register-btn {
-            background: #28a745;
-            margin-top: 10px;
-        }
+    .register-btn {
+        background: #28a745;
+        margin-top: 10px;
+    }
 
-        .forgot-pass {
-            display: block;
-            margin-top: 15px;
-            color: #007bff;
-            text-decoration: none;
-        }
+    .forgot-pass {
+        display: block;
+        margin-top: 15px;
+        color: #007bff;
+        text-decoration: none;
+    }
 
-        .error-box {
-            background: #f8d7da;
-            color: #842029;
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-    </style>
-</head>
-<body>
+    .error-box {
+        background: #f8d7da;
+        color: #842029;
+        padding: 10px;
+        border-radius: 6px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+</style>
+{% endblock %}
 
+{% block content %}
 <div class="login-container">
 
-    <!-- Logo -->
     <img src="{% static 'images/logo.png' %}" class="logo" alt="Logo">
 
     <h2>Login</h2>
 
-    <!-- Login error -->
-    {% if form.errors %}
+    {% if error %}
         <div class="error-box">
-            Incorrect username or password.
+            {{ error }}
         </div>
     {% endif %}
 
@@ -98,12 +86,9 @@
         Forgot Password?
     </a>
 
-    <!-- Register Button -->
     <a href="{% url 'register' %}">
         <button class="register-btn">Register</button>
     </a>
 
 </div>
-
-</body>
-</html>
+{% endblock %}
